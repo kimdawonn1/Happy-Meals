@@ -1,0 +1,133 @@
+---
+title: "Raw Data"
+author: "LNguyen"
+date: "12/10/2024"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This R Markdown document is made interactive using Shiny. Unlike the more traditional workflow of creating static reports, you can now create documents that allow your readers to change the assumptions underlying your analysis and see the results immediately. 
+
+To learn more, see [Interactive Documents](http://rmarkdown.rstudio.com/authoring_shiny.html).
+
+## Inputs and Outputs
+
+You can embed Shiny inputs and outputs in your document. Outputs are automatically updated whenever inputs change.  This demonstrates how a standard R plot can be made interactive by wrapping it in the Shiny `renderPlot` function. The `selectInput` and `sliderInput` functions create the input widgets used to drive the plot.
+
+#Getting data tables out
+
+```{r}
+library(shiny)
+
+#Loading all datasets
+obese_overweight_adults <- read.csv("obese_overweight_adults.csv")
+GDP_tidy <- read.csv("GDP_tidy.csv")
+Gini_Inequality_Index_tidy <- read.csv("Gini_Inequality_Index_tidy.csv")
+happiness_index_tidy <- read.csv("happiness_index_tidy.csv")
+
+# Define UI ----
+ui <- fluidPage(
+  navbarPage("Happy Meals: Global Factors Related to Obesity",
+     #FIRST PANEL: DEFINITION OVERVIEW
+     tabPanel(
+       "Raw Data",
+       
+       fluidRow(
+         column(12,
+                tags$h3(strong("Raw Data Tables")),
+                verbatimTextOutput("rawdescText"))
+         #Note: what if we added a dropdown to select by column?
+         ),
+       
+       selectInput("GlobalFactor",
+                   label = "Choose a Global Factor",
+                   choices = list(
+                                  "Adult Obesity" = "obese_overweight_adults",
+                                  
+                                  "Gross GDP" = "GDP_tidy",
+                                  
+                                  "Gini Inequality Index" = "Gini_Inequality_Index_tidy",
+                                  
+                                  "Happiness Index" = "happiness_index_tidy"
+                  
+                                  ),
+        ),
+      uiOutput("checkbox"),
+      textOutput("null_message"),
+      tableOutput("data_table")  #outputs data table
+         )
+  )
+)
+
+      
+
+# Define server logic ----
+server <- function(input, output) {
+
+  #Define raw description header text
+  output$rawdescText <- renderText({
+    "Select a factor to view its corresponding data set!"
+  })
+  
+    # Create a reactive expression to select the appropriate data based on the input
+  selected_data <- reactive({
+    switch(input$GlobalFactor,
+           "obese_overweight_adults" = obese_overweight_adults,
+           "GDP_tidy" = GDP_tidy,
+           "Gini_Inequality_Index_tidy" = Gini_Inequality_Index_tidy,
+           "happiness_index_tidy" = happiness_index_tidy,
+           stop("Unknown factor")
+    )
+  })
+  
+  #column select checkboxes
+  output$checkbox <- renderUI({
+    data <- selected_data()
+    checkboxGroupInput(inputId = "columns",
+                       label = "Select columns",
+                       choices = colnames(data),
+                       selected = colnames(data),
+                       inline = TRUE) 
+  })
+  
+  # spits out table
+  output$data_table <- renderTable({
+    data <- selected_data()
+    selected_columns <- input$columns
+    data[, selected_columns, drop = FALSE] 
+    
+    if (length(selected_columns) > 0) {
+      return(data[, selected_columns, drop = FALSE])  
+    } else {
+      return(NULL)
+    }
+  })
+  
+    #if there's nothing selected, it'll tell you. if not, the text box won't
+  output$null_message <- renderText({
+    selected_columns <- input$columns
+    
+    if (length(selected_columns) == 0) {
+      return("Please select a column to view!")} 
+    else {
+      return(NULL)
+    }
+    
+  })
+  
+  
+}
+
+# Run the app ----
+shinyApp(ui = ui, server = server)
+             
+             
+```
+
+
+
+

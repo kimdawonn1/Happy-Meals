@@ -1,0 +1,75 @@
+---
+title: "Shepherd"
+author: "LNguyen"
+date: "10/21/2024"
+output: html_document
+---
+
+#10/21/2024
+#imported API_SI.POV.GINI_DS2_en_csv_v2_31732 from web
+#cleaned up data manually, renamed "Gini_Inequality_Index"
+
+#imported WITS-Country-Timeseries.csv
+#cleaned up data manually, renamed "GDP_clean.csv
+
+#moving forward, both must be tidied
+
+#10/23/2024
+#tidied Gini_Inequality_Index_clean (gathered, renamed), created "Gini_Inequality_Index_tidy.csv"
+#tidied GDP_clean (gathered, renamed), created "GDP_tidy.csv"
+
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+#Tidying Gini Inequality Index - gathered columns; renamed all headers to lowercase
+Gini_Inequality_Index_tidy <- gather(Gini_Inequality_Index_clean[1:50], 
+                       key = "year", 
+                       value = "gini inequality index", 
+                       "1960":"2005"
+                       ) 
+
+colnames(Gini_Inequality_Index_tidy) <- tolower(colnames(Gini_Inequality_Index_tidy))
+
+write.csv(Gini_Inequality_Index_tidy, file = "Gini_Inequality_Index_tidy.csv")
+```
+
+```{r}
+#Tidying GDP - gathered columns; renamed all headers to lowercase
+GDP_tidy <- gather(GDP_clean[1:37], 
+                       key = "year", 
+                       value = "GDP", 
+                       "1988":"2022"
+                       ) 
+
+colnames(GDP_tidy) <- tolower(colnames(GDP_tidy))
+
+write.csv(GDP_tidy, file = "GDP_tidy.csv")
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
